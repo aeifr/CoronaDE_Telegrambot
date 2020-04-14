@@ -2,6 +2,7 @@ import * as request from 'request';
 import 'types/federalState';
 import 'csv-reader';
 var fs = require("fs"); //Debugging
+
 var config = require("../config");
 var mysql = require("mysql");
 var secret = require("../secret");

@@ -24,20 +24,20 @@ let getCorona = function getCorona() {
                 eject(err)
             }
 
-            var bodyarr = body.split(',')
-            var StandZeit = 0;
-            for(var i = 0; i < bodyarr.length;i++){
-                if(bodyarr[i].indexOf("de") >= 0){
-                    if(bodyarr[i+1] === "null"){
-                        if(bodyarr[i+2] === "Deutschland"){
-                            confirmed = parseInt(bodyarr[i+12])
-                            recovered = parseInt(bodyarr[i+13])
-                            deaths = parseInt(bodyarr[i+14])
-                            StandZeit = parseInt(bodyarr[i+10])
+                var bodyarr = body.split(',')
+                var StandZeit = 0;
+                for(var i = 0; i < bodyarr.length;i++){
+                    if(bodyarr[i].indexOf("de") >= 0){
+                        if(bodyarr[i+1] === "null"){
+                            if(bodyarr[i+2] === "Deutschland"){
+                                confirmed = parseInt(bodyarr[i+13])
+                                recovered = parseInt(bodyarr[i+14])
+                                deaths = parseInt(bodyarr[i+15])
+                                StandZeit = parseInt(bodyarr[i+11])
+                            }
                         }
                     }
                 }
-            }
                
             var Output = {
                 confirmed: confirmed,
@@ -197,17 +197,17 @@ let getCoronaDetail = function getCoronaDetail(sort) {
                             if(CountLänder >= 16){
                                 var temp = {
                                     Bundesland: "Unbekannter Standort",
-                                    confirmed: Number(Zeilerr[13]),
-                                    recovered: Number(Zeilerr[14]),
-                                    deaths: Number(Zeilerr[15])
+                                    confirmed: Number(Zeilerr[14]),
+                                    recovered: Number(Zeilerr[15]),
+                                    deaths: Number(Zeilerr[16])
                                 }
                                 Output.push(temp);
                             }else{
                                 let temp = {
                                     Bundesland: Zeilerr[2],
-                                    confirmed: Number(Zeilerr[13]),
-                                    recovered: Number(Zeilerr[14]),
-                                    deaths: Number(Zeilerr[15])
+                                    confirmed: Number(Zeilerr[14]),
+                                    recovered: Number(Zeilerr[15]),
+                                    deaths: Number(Zeilerr[16])
                                 }
                                 Output.push(temp);
                             }
