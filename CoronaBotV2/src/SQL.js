@@ -1,13 +1,17 @@
-const url = "https://funkeinteraktiv.b-cdn.net/current.v4.csv";
-const RKIurl = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=OBJECTID&resultOffset=0&resultRecordCount=1000&cacheHint=true'
-const RiskLayer = 'http://www.risklayer-explorer.com/media/data/events/Germany_20200321v2.csv'
-
-const request = require("request");
+import * as request from 'request';
+const {Readable} = require('stream')
 var fs = require("fs"); //Debugging
+
 
 var config = require("../config");
 var mysql = require("mysql");
 var secret = require("../secret");
+import 'types/federalState';
+import 'csv-reader';
+
+const url = "https://funkeinteraktiv.b-cdn.net/current.v4.csv";
+const RKIurl = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=OBJECTID&resultOffset=0&resultRecordCount=1000&cacheHint=true'
+const RiskLayer = 'http://www.risklayer-explorer.com/media/data/events/Germany_20200321v2.csv'
 
 var db = mysql.createPool({
 	connectionLimit : 100,
@@ -21,15 +25,13 @@ var db = mysql.createPool({
 function cleanString(input) {
 	var output = "";
     for (var i=0; i<input.length; i++) {
-        if (input.charCodeAt(i) <= 127 || input.charCodeAt(i) === 223 || input.charCodeAt(i) === 252 || input.charCodeAt(i) === 228 || input.charCodeAt(i) === 246 || input.charCodeAt(i) === 196 || input.charCodeAt(i) === 214 || input.charCodeAt(i) === 220) {
+		let charCodeAt = input.charCodeAt(i);
+		if (charCodeAt <= 127 || charCodeAt === 223 || charCodeAt === 252 || charCodeAt === 228 || charCodeAt === 246 || charCodeAt === 196 || charCodeAt === 214 || charCodeAt === 220) {
             output += input.charAt(i);
         }
     }
     return output;
 }
-
-const BundesländerKürtzel = ['de.bw','de.by','de.be','de.bb','de.hb','de.he','de.mv','de.hh','de.nd','de.nw','de.rp','de.sl','de.sn','de.st','de.sh','de.th']
-const BundesländerArray = ['Baden-Württemberg','Bayern','Berlin','Brandenburg','Bremen','Hamburg','Hessen','Mecklenburg-Vorpommern','Niedersachsen','Nordrhein-Westfalen','Rheinland-Pfalz','Saarland','Sachsen','Sachsen-Anhalt','Schleswig-Holstein','Thüringen', 'nicht-zugeordnet']
 
 let updateDB = function() {
 	return new Promise(function(resolve, reject) {
@@ -40,38 +42,35 @@ let updateDB = function() {
 				let out = {
 					Text: "Updated finished!",
 					count: 0
-					};
+				};
 
-					let Barr = body.split("\n")
+				let Barr = body.split("\n");
+				let readableBody =
+				let inputStream = Fs.createReadStream(body, 'utf8');
 
-					for (i = 1; i < Barr.length-1 ; i++) { 
-						let tempBarr =  Barr[i].split(",");
-						BundesländerKürtzel.map((BundesländerKürtzelMap) =>{
-							if(tempBarr[1].includes(BundesländerKürtzelMap)){
-								BundesländerArray.map((BundesländerArrayMap) =>{
-									if(tempBarr[3].includes(BundesländerArrayMap)){
-										if(tempBarr[4] === "NaN"){
-											var TimeTemp = "123456789";
-										}else{
-											var TimeTemp = tempBarr[10]/1000;
-										}
-										let Quelle = tempBarr[15].replace(/["]/g,'',)
-										let sqlcmdadduserv = [[TimeTemp, tempBarr[3], tempBarr[2], Quelle, tempBarr[16], tempBarr[12], tempBarr[13], tempBarr[14]]];
-										connection.query(sqlcmdadduser, [sqlcmdadduserv], function(err, result) {
-											//console.log(sqlcmdadduserv)
-											if (err) { throw err; }
-										});
-										
-										out.count++;
-									}
-								});
-							}
-						});
-					}
-					connection.release();
-					resolve(out);
-				});
+				for (i = 1; i < Barr.length-1 ; i++) {
+					let tempBarr =  Barr[i].split(",");
+					FederalState.germanStates.map((federalState) => {
+						if(tempBarr[1].includes(federalState.shortTerm) && tempBarr[3].includes(federalState.longTerm)) {
+							let timeTemp = tempBarr[4] === "NaN"
+										   ? "123456789"
+										   : tempBarr[10] / 1000;
+							let source = tempBarr[15].replace(/["]/g,'',)
+							let sqlcmdadduserv = [[timeTemp, tempBarr[3], tempBarr[2], source, tempBarr[16], tempBarr[12], tempBarr[13], tempBarr[14]]];
+							connection.query(sqlcmdadduser, [sqlcmdadduserv], function(err, result) {
+								//console.log(sqlcmdadduserv)
+								if (err) {
+									throw err;
+								}
+							});
+							out.count++;
+						}
+					})
+				}
+				connection.release();
+				resolve(out);
 			});
+		});
 	});
 };
 

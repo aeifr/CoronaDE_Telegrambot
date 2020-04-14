@@ -1,27 +1,32 @@
+const dateFormatOptions = {
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
+	hour: '2-digit',
+	minute: '2-digit',
+	second: '2-digit'
+};
+const dateTimeFormat = new Intl.DateTimeFormat('de', dateFormatOptions);
+
+/**
+ *
+ * @param {Date} date
+ * @returns {string}
+ */
 function getDateTime(date) {
-
-	var hour = date.getHours();
-	hour = (hour < 10 ? "0" : "") + hour;
-
-	var min  = date.getMinutes();
-	min = (min < 10 ? "0" : "") + min;
-
-	var sec  = date.getSeconds();
-	sec = (sec < 10 ? "0" : "") + sec;
-
-	var year = date.getFullYear();
-
-	var month = date.getMonth() + 1;
-	month = (month < 10 ? "0" : "") + month;
-
-	var day  = date.getDate();
-	day = (day < 10 ? "0" : "") + day;
-
-	return year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
+	return dateTimeFormat.format(date);
 }
 
-function log(info) {
-	console.log("[" + getDateTime(new Date()) + "]" + " " + info)
+var log = function(){
+
+	// 1. Convert args to a normal array
+	var args = Array.prototype.slice.call(arguments);
+
+	// 2. Prepend log prefix log string
+	args.unshift("[" + getDateTime(new Date()) + "]" + " ");
+
+	// 3. Pass along arguments to console.log
+	console.log.apply(console, args);
 }
 
 module.exports = {
