@@ -1,13 +1,10 @@
 import * as request from 'request';
-const {Readable} = require('stream')
+import 'types/federalState';
+import 'csv-reader';
 var fs = require("fs"); //Debugging
-
-
 var config = require("../config");
 var mysql = require("mysql");
 var secret = require("../secret");
-import 'types/federalState';
-import 'csv-reader';
 
 const url = "https://funkeinteraktiv.b-cdn.net/current.v4.csv";
 const RKIurl = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=OBJECTID&resultOffset=0&resultRecordCount=1000&cacheHint=true'
@@ -45,8 +42,6 @@ let updateDB = function() {
 				};
 
 				let Barr = body.split("\n");
-				let readableBody =
-				let inputStream = Fs.createReadStream(body, 'utf8');
 
 				for (i = 1; i < Barr.length-1 ; i++) {
 					let tempBarr =  Barr[i].split(",");
