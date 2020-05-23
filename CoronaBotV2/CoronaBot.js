@@ -1,13 +1,11 @@
-var config = require("./config");
-var secret = require("./secret");
-const SQL = require("./src/SQL");
-const Datenquellen = require("./src/Datenquellen");
-const f = require("./src/funktions");
-const R0 = require("./src/R0");
-var fs = require("fs");
-const request = require('request');
-const util = require('util');
-const Telebot = require('telebot');
+import config from '../config.json';
+import secret from '../secret.json';
+import {log} from "./src/funktions";
+import {getNowCast, getSensitive} from "./src/R0";
+import * as SQL from "./src/SQL";
+import * as Datenquellen from "./src/Datenquellen";
+import * as fs from "fs";
+import Telebot from "telebot";
 const bot = new Telebot({
     token: secret.bottoken,
     limit: 1000,
@@ -15,12 +13,12 @@ const bot = new Telebot({
 });
 
 SQL.updateDB().then(function (Output) {
-    f.log(Output.Text + " Es wurden " + Output.count + " eingelesen von Morgenpost")
+    log(Output.Text + " Es wurden " + Output.count + " eingelesen von Morgenpost")
     UpdateDBMin = 0
 }).catch(error => console.log('DB Update Error:', error));
 
 SQL.updateDBRisklayer().then(function (Output) {
-    f.log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
+    log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
     UpdateDBMin = 0
 }).catch(error => console.log('DB Update Error:', error));
 
@@ -58,7 +56,7 @@ bot.on('inlineQuery', msg => {
         if (queryBetaArr[1] === undefined) {
             queryBetaArr[1] = " "
         }
-         //Fix for .trim() error in SQL.js
+         //Fix for .trim() error in SQL.mjs
 
         var para = {
             lookup: queryBetaArr[1],
@@ -417,7 +415,7 @@ setInterval(function () {
 
                 fs.writeFile("./data/last24.csv", Corona.confirmed + "," + Corona.recovered + "," + Corona.deaths + "," + new Date().getTime(), (err) => {
                     if (err) console.log(err);
-                    f.log("last24.csv was written...")
+                    log("last24.csv was written...")
                 });
                 fs.appendFile('./data/TäglicheStats.csv', Corona.confirmed + "," + Corona.recovered + "," + Corona.deaths + "\n", function (err) {
                     if (err) {
@@ -433,7 +431,7 @@ setInterval(function () {
         let changed = parseInt(Corona.confirmeddiff) + parseInt(Corona.recovereddiff) + parseInt(Corona.deathsdiff)
         if (changed >= 1) {
             if (StartTime - Corona.Zeit <= 600000) { //600000
-                f.log("Kanalpost übersprungen, da die Zeit zu gering war.")
+                log("Kanalpost übersprungen, da die Zeit zu gering war.")
             } else {
 
                 if (parseInt(Corona.confirmed) - (parseInt(Corona.recovered) + parseInt(Corona.deaths)) - parseInt(Corona.krankealt) >= 0) {
@@ -457,7 +455,7 @@ setInterval(function () {
 
                 fs.writeFile("./data/last.csv", Corona.confirmed + "," + Corona.recovered + "," + Corona.deaths + "," + Kranke + "," + new Date().getTime() + "," + Corona.ZeitStempel * 1000, (err) => {
                     if (err) console.log(err);
-                    f.log("last.csv was written...")
+                    log("last.csv was written...")
                 });
 
                 let LogLine = Corona.ZeitStempel + "," + Corona.confirmed + "," + Corona.confirmeddiff + "," + Corona.recovered + "," + Corona.recovereddiff + "," + Corona.deaths + "," + Corona.deathsdiff + "\n"
@@ -472,12 +470,12 @@ setInterval(function () {
 
     if (UpdateDBMin === 10) {
         SQL.updateDB().then(function (Output) {
-            f.log(Output.Text + " Es wurden " + Output.count + " eingelesen von Morgenpost")
+            log(Output.Text + " Es wurden " + Output.count + " eingelesen von Morgenpost")
             UpdateDBMin = 0
         }).catch(error => console.log('DB Update Error:', error));
 
         SQL.updateDBRisklayer().then(function (Output) {
-            f.log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
+            log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
             UpdateDBMin = 0
         }).catch(error => console.log('DB Update Error:', error));
     } else {
@@ -537,7 +535,7 @@ bot.on(/^\/inline$/i, (msg) => {
 
 bot.on(/^\/updateRisk$/i, (msg) => {
     SQL.updateDBRisklayer().then(function (Output) {
-        f.log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
+        log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
         UpdateDBMin = 0
     }).catch(error => console.log('DB Update Error:', error));
 });
@@ -550,8 +548,8 @@ bot.on(/^\/R0(.+)/i, (msg, props) => {
     var promises_Formel1 = [];
     var promises_Formel2 = [];
     for (let i = 0; i < Para[1]; i++) {
-        promises_Formel1.push(R0.getR0Formel1(i))
-        promises_Formel2.push(R0.getR0Formel2(i))
+        promises_Formel1.push(getNowCast(i))
+        promises_Formel2.push(getSensitive(i))
     }
     Promise.all([promises_Formel1, promises_Formel2].flat())
         .then((result) => {

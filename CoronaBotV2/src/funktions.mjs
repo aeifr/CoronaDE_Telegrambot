@@ -24,6 +24,6 @@ function log(info) {
     console.log("[" + getDateTime(new Date()) + "]" + " " + info)
 }
 
-module.exports = {
+export {
     log
 };

@@ -1,10 +1,7 @@
 var url = 'https://funkeinteraktiv.b-cdn.net/current.v4.csv'
-const request = require("request");
-const f = require("./funktions");
-var config = require("../config");
-var secret = require("../secret");
-const util = require('util');
-var fs = require("fs");
+import request from "request";
+import * as f from "./funktions";
+import * as fs from "fs";
 
 var ErsteZeile = "";
 const BundesländerKürtzel = ['de.bw', 'de.by', 'de.be', 'de.bb', 'de.hb', 'de.he', 'de.mv', 'de.hh', 'de.nd', 'de.nw', 'de.rp', 'de.sl', 'de.sn', 'de.st', 'de.sh', 'de.th']
@@ -243,7 +240,7 @@ let getCoronaDetail = function getCoronaDetail(sort) {
     })
 }
 
-module.exports = {
+export {
     getCorona,
     getCorona24,
     getCoronaFromFile,

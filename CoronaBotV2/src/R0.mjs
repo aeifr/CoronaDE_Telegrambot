@@ -1,11 +1,7 @@
-const f = require("./funktions");
-const config = require("../config");
-const secret = require("../secret");
-const download = require('image-downloader')
-const quickchart = 'https://quickchart.io/chart?';
-const util = require('util');
-const fs = require("fs");
+import download from "image-downloader";
+import fs from "fs";
 
+const quickchart = 'https://quickchart.io/chart?';
 /**
  *
  * @param {number} num
@@ -57,7 +53,7 @@ function getR0CheckedValue(requiredMinLength, valueProviderCallback) {
         let newInfections = getNewInfections();
 
         if (requiredMinLength >= newInfections.length) {
-            reject("Keine Daten");
+            resolve("Keine Daten");
         } else {
             resolve(round2Dec(valueProviderCallback(newInfections)));
         }
@@ -182,11 +178,8 @@ GetGraph(GraphData).then(Output => {
     console.log(Output.filename)
 });
 
-module.exports = {
-    getR0Formel1: getNowCast,
-    getR0Formel2: getSensitive,
-    getR0Formel3: getStable,
+export {
     getNowCast,
     getSensitive,
     getStable
-}
+};
