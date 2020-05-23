@@ -12,14 +12,14 @@ const bot = new Telebot({
     usePlugins: ['commandButton']
 });
 
-SQL.updateDB().then(function (Output) {
-    log(Output.Text + " Es wurden " + Output.count + " eingelesen von Morgenpost")
-    UpdateDBMin = 0
+SQL.updateDB().then(function (output) {
+    log(output.Text + " Es wurden " + output.count + " eingelesen von Morgenpost")
+    var UpdateDBMin = 0
 }).catch(error => console.log('DB Update Error:', error));
 
-SQL.updateDBRisklayer().then(function (Output) {
-    log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
-    UpdateDBMin = 0
+SQL.updateDBRisklayer().then(function (output) {
+    log(output.Text + " Es wurden " + output.count + " eingelesen von Risklayer")
+    var UpdateDBMin = 0
 }).catch(error => console.log('DB Update Error:', error));
 
 function numberWithCommas(x) {

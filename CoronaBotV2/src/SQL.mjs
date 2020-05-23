@@ -8,6 +8,10 @@ const url = "https://funkeinteraktiv.b-cdn.net/current.v4.csv";
 const RKIurl = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=OBJECTID&resultOffset=0&resultRecordCount=1000&cacheHint=true'
 const RiskLayer = 'http://www.risklayer-explorer.com/media/data/events/Germany_20200321v2.csv'
 
+var ErsteZeileMorgenpost = "";
+var ErsteZeileRisklayer = "";
+const BundesländerKürtzel = ['de.bw', 'de.by', 'de.be', 'de.bb', 'de.hb', 'de.he', 'de.mv', 'de.hh', 'de.nd', 'de.nw', 'de.rp', 'de.sl', 'de.sn', 'de.st', 'de.sh', 'de.th']
+const BundesländerArray = ['Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen', 'nicht-zugeordnet']
 
 var db = mysql.createPool({
     connectionLimit: 100,
@@ -29,19 +33,13 @@ function cleanString(input) {
 }
 
 function GetCSVPositionMP(KeyString) {
-    ErsteZeileMorgenpostArr = ErsteZeileMorgenpost.split(',');
+    var ErsteZeileMorgenpostArr = ErsteZeileMorgenpost.split(',');
     return ErsteZeileMorgenpostArr.indexOf(KeyString)
 }
 
 function GetCSVPositionRL(KeyString) {
-    ErsteZeileRisklayerArr = ErsteZeileRisklayer.split(',');
-    return ErsteZeileRisklayerArr.indexOf(KeyString)
+    return ErsteZeileRisklayer.split(',').indexOf(KeyString);
 }
-
-var ErsteZeileMorgenpost = "";
-var ErsteZeileRisklayer = "";
-const BundesländerKürtzel = ['de.bw', 'de.by', 'de.be', 'de.bb', 'de.hb', 'de.he', 'de.mv', 'de.hh', 'de.nd', 'de.nw', 'de.rp', 'de.sl', 'de.sn', 'de.st', 'de.sh', 'de.th']
-const BundesländerArray = ['Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen', 'nicht-zugeordnet']
 
 let updateDB = function () {
     return new Promise(function (resolve, reject) {
@@ -58,7 +56,7 @@ let updateDB = function () {
 
                 let Barr = body.split("\n")
 
-                for (i = 1; i < Barr.length - 1; i++) {
+                for (var i = 1; i < Barr.length - 1; i++) {
                     ErsteZeileMorgenpost = Barr[0]
                     let tempBarr = Barr[i].split(",");
                     BundesländerKürtzel.map((BundesländerKürtzelMap) => {
@@ -100,6 +98,9 @@ let updateDBRisklayer = function () {
                 throw err;
             }
             db.getConnection(function (err, connection) {
+                if(err) {
+                    throw err;
+                }
                 let out = {
                     Text: "Updated finished!",
                     count: 0
@@ -107,7 +108,7 @@ let updateDBRisklayer = function () {
 
                 let Barr = body.split("\n")
 
-                for (i = 1; i < Barr.length - 1; i++) {
+                for (var i = 1; i < Barr.length - 1; i++) {
                     ErsteZeileRisklayer = Barr[0] //Wenn über 10, dann MUSS eins Addiert werden da 'data' in 2 teile geteilt wird.
                     let tempBarr = Barr[i].split(",");
                     if (tempBarr.length >= 16) {
