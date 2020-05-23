@@ -1,0 +1,9 @@
+{
+  "name": "CoronaDE_Telegrambot",
+  "version": "2.0.0",
+  "dependencies": {
+    "telebot": "latest",
+    "mysql": "latest",
+    "csv-reader": "latest"
+  }
+}
