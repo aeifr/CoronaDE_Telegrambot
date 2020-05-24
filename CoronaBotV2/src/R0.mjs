@@ -1,5 +1,6 @@
 import download from "image-downloader";
 import fs from "fs";
+import {default as axios} from "axios";
 
 const quickchart = 'https://quickchart.io/chart?';
 /**
@@ -135,24 +136,34 @@ let getStable = offset => getR0CheckedValue(13 + offset, (newInfections =>
  * @constructor
  */
 let GetGraph = function (Para) {
+
+
     return new Promise(function (resolve, reject) {
-        let dataset = [{label: 'Dogs', data: [50, 60, 70, 180, 190], fill: false, borderColor: 'blue'}, {
-            label: 'Cats',
-            data: [100, 200, 300, 400, 500],
-            fill: false,
-            borderColor: 'green'
-        }];
-        let encodedDataset = encodeURIComponent(JSON.stringify(dataset));
-        let baseUrl = `${quickchart}width=${Para.resolutionX}&height=${Para.resolutionY}&c={type:'${Para.type}',data:{labels:${Para.lable},datasets:${encodedDataset}}`
-        const options = {
-            url: baseUrl,
-            dest: `${Para.path}${Para.filename}`
+        let chartData = {
+            "type":"line",
+            "data": {
+                "labels": ["Hello", "World"],
+                "datasets": [{
+                    "label": "Foo",
+                    "data": [1, 2]
+                }]
+            }
         };
-        console.log(baseUrl);
-        download.image(options)
-            .then(output => {
-                resolve(output);
-            })
+        let chartOptions = {
+            "width":Para.resolutionX,
+            "height":Para.resolutionY,
+            "chart": chartData
+        };
+        axios.post("https://quickchart.io/chart/create", chartOptions)
+             .then(response => {
+                if(response.data && response.data.succues === true) {
+                    var imageOptions = {"url": response.data.url,
+                        "dest": `${Para.path}${Para.filename}`
+                    };
+                    download.image(imageOptions).then(resolve);
+                }
+             })
+             .catch(console.error);
     });
 };
 
@@ -178,7 +189,7 @@ GetGraph(GraphData).then(Output => {
     console.log(Output.filename)
 });
 
-export {
+module.exports = {
     getNowCast,
     getSensitive,
     getStable
