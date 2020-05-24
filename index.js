@@ -1,0 +1,1 @@
+import("./CoronaBotV2/CoronaBot.mjs");

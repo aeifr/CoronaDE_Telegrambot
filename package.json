@@ -1,7 +1,14 @@
 {
   "name": "CoronaDE_Telegrambot",
   "version": "2.0.0",
-  "type": "node",
+  "main": "index.js",
+  "type": "module",
+  "@std/esm": "cjs",
+  "scripts": {
+    "build-all": "node i Setup.js",
+    "build": "node i",
+    "start": "node index.js "
+  },
   "dependencies": {
     "axios": "latest",
     "csv-reader": "latest",
