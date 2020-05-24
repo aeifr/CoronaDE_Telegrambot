@@ -1,13 +1,12 @@
 {
   "name": "CoronaDE_Telegrambot",
   "version": "2.0.0",
-  "main": "index.js",
-  "type": "module",
+  "main": "index.cjs",
   "@std/esm": "cjs",
   "scripts": {
     "build-all": "node i Setup.js",
     "build": "node i",
-    "start": "node index.js "
+    "start": "node --experimental-json-modules index.cjs "
   },
   "dependencies": {
     "axios": "latest",

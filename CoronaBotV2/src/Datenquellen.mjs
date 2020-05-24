@@ -1,6 +1,6 @@
 var url = 'https://funkeinteraktiv.b-cdn.net/current.v4.csv'
 import request from "request";
-import * as f from "./funktions";
+import * as f from "./funktions.mjs";
 import * as fs from "fs";
 
 var ErsteZeile = "";

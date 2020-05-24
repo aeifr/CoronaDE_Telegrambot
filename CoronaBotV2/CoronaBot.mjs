@@ -1,21 +1,17 @@
 import TeleBot from "telebot";
 import * as fs from "fs";
 
-
-import * as Rekursion from "./src/R0";
-import config from '../config.json';
-import secret from '../secret.json';
-import * as SQL from "./src/SQL";
-import * as Datenquellen from "./src/Datenquellen";
-import * as f from "./src/funktions";
-console.log(TeleBot);
+import * as Rekursion from "./src/R0.mjs";
+import * as config from '../config.json';
+import * as secret from '../secret.json';
+import * as SQL from "./src/SQL.mjs";
+import * as Datenquellen from "./src/Datenquellen.mjs";
+import * as f from "./src/funktions.mjs";
 const bot = new TeleBot({
     token: secret.bottoken,
     limit: 1000,
     usePlugins: ['commandButton']
 });
-
-
 
 SQL.updateDB().then(function (output) {
     f.log(output.Text + " Es wurden " + output.count + " eingelesen von Morgenpost")
@@ -574,5 +570,6 @@ bot.on(/^\/R0(.+)/i, (msg, props) => {
             }
         })
 });
+
 
 //getDate

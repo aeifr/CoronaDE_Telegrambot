@@ -21,15 +21,15 @@ function round2Dec(num) {
  * @returns {number[]} new infections per day
  */
 function getNewInfections() {
-    var currentIllCases = []
-    var LT = fs.readFileSync('./data/TäglicheStats.csv');
-    var LTarr = LT.toString().split(/\s+/);
-    for (i = LTarr.length - 2; i >= 0; i--) {
-        var line = LTarr[i].toString().split(",");
+    let currentIllCases = []
+    let LT = fs.readFileSync('./data/TäglicheStats.csv');
+    let LTarr = LT.toString().split(/\s+/);
+    for (let i = LTarr.length - 2; i >= 0; i--) {
+        let line = LTarr[i].toString().split(",");
         currentIllCases.push(parseInt(line[0]) - (parseInt(line[1]) + parseInt(line[2])))
     }
-    var newInfections = []
-    for (i = 0; i < currentIllCases.length - 1; i++) {
+    let newInfections = []
+    for (let i = 0; i < currentIllCases.length - 1; i++) {
         newInfections.push(currentIllCases[i] - currentIllCases[i + 1])
     }
     return newInfections;
@@ -52,12 +52,9 @@ function getNewInfections() {
 function getR0CheckedValue(requiredMinLength, valueProviderCallback) {
     return new Promise((resolve, reject) => {
         let newInfections = getNewInfections();
-
-        if (requiredMinLength >= newInfections.length) {
-            resolve("Keine Daten");
-        } else {
-            resolve(round2Dec(valueProviderCallback(newInfections)));
-        }
+        (requiredMinLength >= newInfections.length)
+            ? resolve("Keine Daten")
+            : resolve(round2Dec(valueProviderCallback(newInfections)));
     });
 }
 
@@ -189,7 +186,7 @@ GetGraph(GraphData).then(Output => {
     console.log(Output.filename)
 });
 
-module.exports = {
+export {
     getNowCast,
     getSensitive,
     getStable
