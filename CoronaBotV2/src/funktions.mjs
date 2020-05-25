@@ -1,3 +1,6 @@
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
 function getDateTime(date) {
 
     var hour = date.getHours();
@@ -24,6 +27,12 @@ function log(info) {
     console.log("[" + getDateTime(new Date()) + "]" + " " + info)
 }
 
+function relativ(root) {
+    const __dirname = dirname(fileURLToPath(root));
+    return (rel) => join(__dirname,  rel);
+}
+
 export {
-    log
+    log,
+    relativ
 };

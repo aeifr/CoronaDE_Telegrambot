@@ -1,17 +1,18 @@
 {
   "name": "CoronaDE_Telegrambot",
   "version": "2.0.0",
-  "main": "index.cjs",
-  "@std/esm": "cjs",
   "scripts": {
     "build-all": "node i Setup.js",
     "build": "node i",
-    "start": "node --experimental-json-modules index.cjs "
+    "start": "node index.cjs ",
+    "start-trace": "node --trace-warnings index.cjs "
   },
   "dependencies": {
     "axios": "latest",
     "csv-reader": "latest",
+    "esm": "^3.2.25",
     "image-downloader": "latest",
+    "mobx": "latest",
     "module_name": "^1.0.0",
     "mysql": "latest",
     "telebot": "latest"

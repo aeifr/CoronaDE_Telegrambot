@@ -133,11 +133,9 @@ let getStable = offset => getR0CheckedValue(13 + offset, (newInfections =>
  * @constructor
  */
 let GetGraph = function (Para) {
-
-
     return new Promise(function (resolve, reject) {
         let chartData = {
-            "type":"line",
+            "type": "line",
             "data": {
                 "labels": ["Hello", "World"],
                 "datasets": [{
@@ -147,20 +145,21 @@ let GetGraph = function (Para) {
             }
         };
         let chartOptions = {
-            "width":Para.resolutionX,
-            "height":Para.resolutionY,
+            "width": Para.resolutionX,
+            "height": Para.resolutionY,
             "chart": chartData
         };
         axios.post("https://quickchart.io/chart/create", chartOptions)
-             .then(response => {
-                if(response.data && response.data.succues === true) {
-                    var imageOptions = {"url": response.data.url,
+            .then(response => {
+                if (response.data && response.data.succues === true) {
+                    var imageOptions = {
+                        "url": response.data.url,
                         "dest": `${Para.path}${Para.filename}`
                     };
                     download.image(imageOptions).then(resolve);
                 }
-             })
-             .catch(console.error);
+            })
+            .catch(console.error);
     });
 };
 

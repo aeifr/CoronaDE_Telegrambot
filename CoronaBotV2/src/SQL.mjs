@@ -1,5 +1,5 @@
-import config from '../../config.json';
-import secret from '../../secret.json';
+import config from '../../config.mjs';
+import secret from '../../secret.mjs';
 import request from 'request';
 import fs from "fs";  //Debugging
 import mysql from "mysql";
@@ -148,20 +148,21 @@ let updateDBRisklayer = function () {
 
 let lookup = function (para) {
     return new Promise(function (resolve, reject) {
+        let selectCommand;
         if (para.table === "region") {
             if (para.mode === "LIKE") {
-                var sqlcmd = "SELECT TimeStamp, Bundesland, Ort, Quelle, QuelleURL, confirmed, recovered, deaths, population FROM region where " + para.collum + " LIKE '%" + cleanString(para.lookup.trim()) + "%' LIMIT " + para.limit;
+                selectCommand = "SELECT TimeStamp, Bundesland, Ort, Quelle, QuelleURL, confirmed, recovered, deaths, population FROM region where " + para.collum + " LIKE '%" + cleanString(para.lookup.trim()) + "%' LIMIT " + para.limit;
             }
             //if(para.mode === "EQUEL"){var sqlcmd = "SELECT Haltestellenname,VGNKennung,Ort FROM Haltestellen where " + para.collum + " ='" + para.lookup.trim() + "' LIMIT " + para.limit;}
         }
         if (para.table === "risklayer") {
             if (para.mode === "LIKE") {
-                var sqlcmd = "SELECT TimeStamp, Ort, QuelleURL, confirmed, recovered, deaths, population FROM risklayer where " + para.collum + " LIKE '%" + cleanString(para.lookup.trim()) + "%' LIMIT " + para.limit;
+                selectCommand = "SELECT TimeStamp, Ort, QuelleURL, confirmed, recovered, deaths, population FROM risklayer where " + para.collum + " LIKE '%" + cleanString(para.lookup.trim()) + "%' LIMIT " + para.limit;
             }
         }
         //console.log(sqlcmd)
         db.getConnection(function (err, connection) {
-            connection.query(sqlcmd, function (err, rows) {
+            connection.query(selectCommand, function (err, rows) {
                 if (err) {
                     throw err;
                 }

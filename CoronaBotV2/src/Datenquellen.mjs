@@ -1,38 +1,38 @@
 var url = 'https://funkeinteraktiv.b-cdn.net/current.v4.csv'
 import request from "request";
 import * as f from "./funktions.mjs";
-import * as fs from "fs";
+import fs from "fs";
 
-var ErsteZeile = "";
+let relativPath = f.relativ(import.meta.url);
+
+let ErsteZeile = "";
 const BundesländerKürtzel = ['de.bw', 'de.by', 'de.be', 'de.bb', 'de.hb', 'de.he', 'de.mv', 'de.hh', 'de.nd', 'de.nw', 'de.rp', 'de.sl', 'de.sn', 'de.st', 'de.sh', 'de.th']
 const BundesländerArray = ['Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen', 'nicht-zugeordnet']
 
 function GetCSVPosition(KeyString) {
-    ErsteZeileArr = ErsteZeile.split(',');
-    return ErsteZeileArr.indexOf(KeyString)
+    return ErsteZeile.split(',').indexOf(KeyString);
 }
-
 
 let getCorona = function getCorona() {
     return new Promise(function (resolve, reject) {
-        var Output = "";
         f.log("Pushed: getCorona");
         request(url, (err, res, body) => {
-            let confirmed = 0;
-            let recovered = 0;
-            let deaths = 0;
-            var LT = fs.readFileSync('./data/last.csv');
-            var LTarr = LT.toString().split(/\s+/);
-            var LTarr = LTarr.toString().split(",");
             if (err) {
                 reject(err)
             }
+            let confirmed = 0;
+            let recovered = 0;
+            let deaths = 0;
+            let lastPath = relativPath("../data/last.csv");
+            let LT = fs.readFileSync(lastPath);
+            let LTarr = LT.toString().split(/\s+/);
+            LTarr = LTarr.toString().split(",");
 
-            var bodyarr = body.split(',')
-            var bodyarrZeilen = body.split('\n')
+            let bodyarr = body.split(',')
+            let bodyarrZeilen = body.split('\n')
             ErsteZeile = bodyarrZeilen[0]
-            var StandZeit = 0;
-            for (var i = 0; i < bodyarr.length; i++) {
+            let StandZeit = 0;
+            for (let i = 0; i < bodyarr.length; i++) {
                 if (bodyarr[i].indexOf("de") >= 0) {
                     if (bodyarr[i + 1] === "null") {
                         if (bodyarr[i + 2] === "Deutschland") {
@@ -45,7 +45,7 @@ let getCorona = function getCorona() {
                 }
             }
 
-            var Output = {
+            let Output = {
                 confirmed: confirmed,
                 confirmeddiff: confirmed - LTarr[0],
                 recovered: recovered,
@@ -57,8 +57,10 @@ let getCorona = function getCorona() {
                 ZeitStempelAlt: LTarr[5] / 1000,
                 ZeitStempel: StandZeit / 1000 //Neuer höchster Wert der aktuellen Anfrage
             };
-            fs.writeFile("./data/current.csv", confirmed + "," + recovered + "," + deaths + "," + new Date().getTime() + "," + StandZeit, (err) => {
-                if (err) console.log(err);
+            fs.writeFile(relativPath("../data/current.csv"), confirmed + "," + recovered + "," + deaths + "," + new Date().getTime() + "," + StandZeit, (err) => {
+                if (err) {
+                    console.log(err);
+                }
                 f.log("current.csv was written...")
                 resolve(Output);
             });
@@ -68,10 +70,10 @@ let getCorona = function getCorona() {
 
 let getCorona24 = function getCorona24() {
     return new Promise(function (resolve, reject) {
-        var Output = "";
+        let output = "";
         f.log("Pushed: getCorona24");
         request(url, (err, res, body) => {
-            var bodyarrZeilen = body.split('\n')
+            let bodyarrZeilen = body.split('\n')
             ErsteZeile = bodyarrZeilen[0]
             let CountLänder = 0;
             let confirmed = 0;
@@ -79,14 +81,14 @@ let getCorona24 = function getCorona24() {
             let deaths = 0;
             let Bundesländer = [];
             let BundesländerAlt = [];
-            var LT = fs.readFileSync('./data/last24.csv');
-            var LTarr = LT.toString().split(/\s+/);
-            var LTarr = LTarr.toString().split(",");
+            let LT = fs.readFileSync('./data/last24.csv');
+            let LTarr = LT.toString().split(/\s+/);
+            LTarr = LTarr.toString().split(",");
 
-            var BT = fs.readFileSync('./data/Bundesländer24.csv');
-            var BTarr = BT.toString().split("\n");
-            for (var i = 0; i < BTarr.length - 1; i++) {
-                var BTarrFor = BTarr[i].toString().split(".");
+            let BT = fs.readFileSync('./data/Bundesländer24.csv');
+            let BTarr = BT.toString().split("\n");
+            for (let i = 0; i < BTarr.length - 1; i++) {
+                let BTarrFor = BTarr[i].toString().split(".");
                 let temp = {
                     Bundesland: BTarrFor[0],
                     confirmed: Number(BTarrFor[1]),
@@ -95,16 +97,15 @@ let getCorona24 = function getCorona24() {
                 }
                 BundesländerAlt.push(temp);
             }
-            ;
             //console.log(BundesländerAlt)
             if (err) {
                 reject(err)
             }
 
-            var bodyarr = body.split('\n')
-            var tracker = 0;
+            let bodyarr = body.split('\n')
+            let tracker = 0;
             bodyarr.map((Zeile) => {
-                var Zeilerr = Zeile.split(',')
+                let Zeilerr = Zeile.split(',')
                 BundesländerKürtzel.map((BundesländerKürtzelMap) => {
                     if (Zeilerr[0].includes(BundesländerKürtzelMap)) {
                         if (Zeilerr[1] === "de") {
@@ -138,7 +139,7 @@ let getCorona24 = function getCorona24() {
                     }
                 });
             });
-            var bodyarr = body.split(',')
+            bodyarr = body.split(',')
             for (var i = 0; i < bodyarr.length; i++) {
                 if (bodyarr[i].indexOf("de") >= 0) {
                     if (bodyarr[i + 1] === "null") {
@@ -152,17 +153,17 @@ let getCorona24 = function getCorona24() {
                 }
             }
 
-            var WriteFile = "";
+            let writeFile = "";
             Bundesländer.map((Bundesländer) => {
-                WriteFile = WriteFile + Bundesländer.Bundesland + "." + Bundesländer.confirmed + "." + Bundesländer.recovered + "." + Bundesländer.deaths + "\n";
+                writeFile = writeFile + Bundesländer.Bundesland + "." + Bundesländer.confirmed + "." + Bundesländer.recovered + "." + Bundesländer.deaths + "\n";
             });
 
-            fs.writeFile("./data/Bundesländer24.csv", WriteFile, (err) => {
+            fs.writeFile("./data/Bundesländer24.csv", writeFile, (err) => {
                 if (err) console.log(err);
                 f.log("Bundesländer24.csv was written...")
                 Bundesländer.sort((a, b) => (a.confirmed > b.confirmed) ? -1 : 1)
 
-                var Output = {
+                let Output = {
                     confirmed: confirmed,
                     confirmeddiff: confirmed - LTarr[0],
                     recovered: recovered,
@@ -181,43 +182,42 @@ let getCorona24 = function getCorona24() {
 
 let getCoronaFromFile = function getCoronaFromFile() {
     return new Promise(function (resolve, reject) {
-        var LT = fs.readFileSync('./data/current.csv');
-        var LTarr = LT.toString().split(/\s+/);
-        var LTarr = LTarr.toString().split(",");
+        let LT = fs.readFileSync(relativPath('../data/current.csv'));
+        let LTarr = LT.toString().split(/\s+/);
+        LTarr = LTarr.toString().split(",");
 
-        var Output = {
+        resolve({
             confirmed: LTarr[0],
             recovered: LTarr[1],
             deaths: LTarr[2],
             Zeit: LTarr[3],
             ZeitStempel: LTarr[4] / 1000
-        };
-        resolve(Output);
+        });
     });
 }
 
 let getCoronaDetail = function getCoronaDetail(sort) {
     return new Promise(function (resolve, reject) {
-        var CountLänder = 0;
-        var Output = [];
+        let CountLänder = 0;
+        let output = [];
         f.log("Pushed: getCoronaDetail");
         request(url, (err, res, body) => {
-            var bodyarrZeilen = body.split('\n')
+            let bodyarrZeilen = body.split('\n')
             ErsteZeile = bodyarrZeilen[0]
-            var bodyarr = body.split('\n')
+            let bodyarr = body.split('\n')
             bodyarr.map((Zeile) => {
-                var Zeilerr = Zeile.split(',')
+                let Zeilerr = Zeile.split(',')
                 BundesländerKürtzel.map((BundesländerKürtzelMap) => {
                     if (Zeilerr[0].includes(BundesländerKürtzelMap)) {
                         if (Zeilerr[1] === "de") {
                             if (CountLänder >= 16) {
-                                var temp = {
+                                let temp = {
                                     Bundesland: "Unbekannter Standort",
                                     confirmed: Number(Zeilerr[1 + GetCSVPosition("confirmed")]),
                                     recovered: Number(Zeilerr[1 + GetCSVPosition("recovered")]),
                                     deaths: Number(Zeilerr[1 + GetCSVPosition("deaths")])
                                 }
-                                Output.push(temp);
+                                output.push(temp);
                             } else {
                                 let temp = {
                                     Bundesland: Zeilerr[GetCSVPosition("label")],
@@ -225,7 +225,7 @@ let getCoronaDetail = function getCoronaDetail(sort) {
                                     recovered: Number(Zeilerr[1 + GetCSVPosition("recovered")]),
                                     deaths: Number(Zeilerr[1 + GetCSVPosition("deaths")])
                                 }
-                                Output.push(temp);
+                                output.push(temp);
                             }
                             CountLänder++;
                         }
@@ -233,9 +233,9 @@ let getCoronaDetail = function getCoronaDetail(sort) {
                 });
             });
             if (sort === true) {
-                Output.sort((a, b) => (a.confirmed > b.confirmed) ? -1 : 1)
+                output.sort((a, b) => (a.confirmed > b.confirmed) ? -1 : 1)
             }
-            resolve(Output);
+            resolve(output);
         })
     })
 }
