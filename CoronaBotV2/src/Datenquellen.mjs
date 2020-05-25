@@ -45,7 +45,7 @@ let getCorona = function getCorona() {
                 }
             }
 
-            let Output = {
+            let output = {
                 confirmed: confirmed,
                 confirmeddiff: confirmed - LTarr[0],
                 recovered: recovered,
@@ -62,7 +62,7 @@ let getCorona = function getCorona() {
                     console.log(err);
                 }
                 f.log("current.csv was written...")
-                resolve(Output);
+                resolve(output);
             });
         })
     })

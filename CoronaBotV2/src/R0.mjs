@@ -125,6 +125,18 @@ let getStable = offset => getR0CheckedValue(13 + offset, (newInfections =>
             + newInfections[10 + offset])
 ));
 
+let oopt = {
+    "url": 'https://quickchart.io/chart/render/f-5ab476c7-b6e2-42f4-a1d1-6fc7885fd324',
+    "dest": "C:/dev/media/test.jpg"
+};
+download.image(oopt)
+    .then(res => {
+        console.log("downloaded image");
+    }).catch(err => {
+    console.log(err);
+}).finally(() => console.log("34567"));
+
+
 /**
  * Provides an image representing a graph of ...
  *
@@ -132,7 +144,7 @@ let getStable = offset => getR0CheckedValue(13 + offset, (newInfections =>
  * @returns {Promise<unknown>}
  * @constructor
  */
-let GetGraph = function (Para) {
+let GetGraph = async function (Para) {
     return new Promise(function (resolve, reject) {
         let chartData = {
             "type": "line",
@@ -151,12 +163,21 @@ let GetGraph = function (Para) {
         };
         axios.post("https://quickchart.io/chart/create", chartOptions)
             .then(response => {
-                if (response.data && response.data.succues === true) {
-                    var imageOptions = {
+                if (response.data && response.data.success === true) {
+                    let imageOptions = {
                         "url": response.data.url,
                         "dest": `${Para.path}${Para.filename}`
                     };
-                    download.image(imageOptions).then(resolve);
+                    console.log(imageOptions);
+                    download.image(imageOptions)
+                            .then(res => {
+                                console.log("downloaded image");
+                                resolve(res);
+                            }).catch(err => {
+                                console.log(err);
+                                reject(err);
+                            }).finally(() => console.log("34567"));
+                    console.log("foobar");
                 }
             })
             .catch(console.error);

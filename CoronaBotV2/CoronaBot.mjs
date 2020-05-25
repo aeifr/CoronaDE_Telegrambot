@@ -2,11 +2,14 @@ import TeleBot from "telebot";
 import * as fs from "fs";
 
 import * as Rekursion from "./src/R0.mjs";
-import * as config from '../config.json';
-import * as secret from '../secret.json';
+import config from '../config.mjs';
+import secret from '../secret.mjs';
 import * as SQL from "./src/SQL.mjs";
 import * as Datenquellen from "./src/Datenquellen.mjs";
-import * as f from "./src/funktions.mjs";
+import {log, relativ} from "./src/funktions.mjs";
+let relativPath = relativ(import.meta.url);
+import rootStore from "./src/context.mjs";
+const {applicationStore} = rootStore;
 const bot = new TeleBot({
     token: secret.bottoken,
     limit: 1000,
@@ -14,19 +17,25 @@ const bot = new TeleBot({
 });
 
 SQL.updateDB().then(function (output) {
-    f.log(output.Text + " Es wurden " + output.count + " eingelesen von Morgenpost")
-    var UpdateDBMin = 0
+    log(output.Text + " Es wurden " + output.count + " eingelesen von Morgenpost");
+    applicationStore.setUpdateDbMinTimer(10);
 }).catch(error => console.log('DB Update Error:', error));
 
 SQL.updateDBRisklayer().then(function (output) {
-    f.log(output.Text + " Es wurden " + output.count + " eingelesen von Risklayer")
-    var UpdateDBMin = 0
+    log(output.Text + " Es wurden " + output.count + " eingelesen von Risklayer");
+    applicationStore.setUpdateDbMinTimer(0);
 }).catch(error => console.log('DB Update Error:', error));
 
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
+/**
+ *
+ * @param num
+ * @returns {number}
+ * @constructor
+ */
 function Round3Dec(num) {
     if(typeof num === "number") {
         num.toFixed(3);
@@ -43,9 +52,9 @@ function getDate(date) {
     return `${day}.${month}.${year}`
 }
 
-const BundesländerArray = ['Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen']
+const BundesländerArray = ['Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen'];
 
-var url = 'https://interaktiv.morgenpost.de/corona-virus-karte-infektionen-deutschland-weltweit/data/Coronavirus.current.v2.csv'
+let url = 'https://interaktiv.morgenpost.de/corona-virus-karte-infektionen-deutschland-weltweit/data/Coronavirus.current.v2.csv';
 
 
 bot.start(); //Telegram bot start
@@ -54,15 +63,15 @@ bot.start(); //Telegram bot start
 bot.on('inlineQuery', msg => {
     let query = msg.query;
     let queryarr = query.split('');
-    queryBetaArr = query.split(' ');
+    let queryBetaArr = query.split(' ');
     const answers = bot.answerList(msg.id, {cacheTime: 1});
     if (queryBetaArr[0] === "beta" || queryBetaArr[0] === "Beta" || queryBetaArr[0] === "BETA") {
         if (queryBetaArr[1] === undefined) {
             queryBetaArr[1] = " "
         }
-         //Fix for .trim() error in SQL.mjs
+        //Fix for .trim() error in SQL.mjs
 
-        var para = {
+        let para = {
             lookup: queryBetaArr[1],
             collum: "Ort",
             mode: "LIKE",
@@ -83,10 +92,10 @@ bot.on('inlineQuery', msg => {
             } else {
                 getCoronaDetail.map((getCoronaDetail) => {
 
-                    let date = new Date(getCoronaDetail.TimeStamp * 1000)
-                    let year = date.getFullYear()
-                    let month = date.getMonth() + 1
-                    let day = date.getDate()
+                    let date = new Date(getCoronaDetail.TimeStamp * 1000);
+                    let year = date.getFullYear();
+                    let month = date.getMonth() + 1;
+                    let day = date.getDate();
                     let hours = date.getHours();
                     let minutes = "0" + date.getMinutes();
 
@@ -95,10 +104,10 @@ bot.on('inlineQuery', msg => {
                     let sourceTemp,
                         messageOutput;
                     if (Object.entries(getCoronaDetail.QuelleURL).length === 0) {
-                        sourceTemp = "Quelle nicht als Link verfügbar"
+                        sourceTemp = "Quelle nicht als Link verfügbar";
                         messageOutput = "<b>" + getCoronaDetail.Ort + "</b>\nEinwohner: " + numberWithCommas(getCoronaDetail.population) + "\n\n - Bestätigt: " + numberWithCommas(getCoronaDetail.confirmed) + " 🦠 (" + Round3Dec((getCoronaDetail.confirmed / getCoronaDetail.population) * 100) + "%)\n - Wieder gesund: " + numberWithCommas(getCoronaDetail.recovered) + " 💚(" + Round3Dec((getCoronaDetail.recovered / getCoronaDetail.population) * 100) + "%)\n - Todesfälle: " + numberWithCommas(getCoronaDetail.deaths) + " ⚰️(" + Round3Dec((getCoronaDetail.deaths / getCoronaDetail.population) * 100) + "%)\n\nAktuell Erkrankte: " + numberWithCommas(parseInt(getCoronaDetail.confirmed) - (parseInt(getCoronaDetail.recovered) + parseInt(getCoronaDetail.deaths))) + " 🤧\n\nQuelle: " + sourceTemp + "\n<b>BETA MODUS</b>\nStand: <b>" + formattedTime + "</b>";
                     } else {
-                        sourceTemp = "Link"
+                        sourceTemp = "Link";
                         messageOutput = "<b>" + getCoronaDetail.Ort + "</b>\nEinwohner: " + numberWithCommas(getCoronaDetail.population) + "\n\n - Bestätigt: " + numberWithCommas(getCoronaDetail.confirmed) + " 🦠 (" + Round3Dec((getCoronaDetail.confirmed / getCoronaDetail.population) * 100) + "%)\n - Wieder gesund: " + numberWithCommas(getCoronaDetail.recovered) + " 💚(" + Round3Dec((getCoronaDetail.recovered / getCoronaDetail.population) * 100) + "%)\n - Todesfälle: " + numberWithCommas(getCoronaDetail.deaths) + " ⚰️(" + Round3Dec((getCoronaDetail.deaths / getCoronaDetail.population) * 100) + "%)\n\nAktuell Erkrankte: " + numberWithCommas(parseInt(getCoronaDetail.confirmed) - (parseInt(getCoronaDetail.recovered) + parseInt(getCoronaDetail.deaths))) + " 🤧\n\nQuelle: <a href='" + getCoronaDetail.QuelleURL + "'>" + sourceTemp + "</a>\n<b>BETA MODUS</b>\nStand: <b>" + formattedTime + "</b>";
                     }
 
@@ -126,14 +135,14 @@ bot.on('inlineQuery', msg => {
                     ]
                 ]);
 
-                var date = new Date(Corona.ZeitStempel * 1000)
-                var year = date.getFullYear()
-                var month = date.getMonth() + 1
-                var day = date.getDate()
-                var hours = date.getHours();
-                var minutes = "0" + date.getMinutes();
+                let date = new Date(Corona.ZeitStempel * 1000);
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+                let hours = date.getHours();
+                let minutes = "0" + date.getMinutes();
 
-                var formattedTime = day + "." + month + "." + year + " " + hours + ':' + minutes.substr(-2);
+                let formattedTime = day + "." + month + "." + year + " " + hours + ':' + minutes.substr(-2);
 
                 let MessageOut = "Corona Deutschland:\n- Bestätigt: " + numberWithCommas(Corona.confirmed) + " 🦠\n- Wieder gesund: " + numberWithCommas(Corona.recovered) + " 💚\n- Todesfälle: " + numberWithCommas(Corona.deaths) + " ⚰️\n\nAktuell Erkrankte: " + numberWithCommas(parseInt(Corona.confirmed) - (parseInt(Corona.recovered) + parseInt(Corona.deaths))) + " 🤧\n\nStand: ***" + formattedTime + "***";
 
@@ -143,30 +152,27 @@ bot.on('inlineQuery', msg => {
                     message_text: MessageOut,
                     reply_markup: replyMarkup,
                     parse_mode: 'markdown'
-                })
+                });
                 return bot.answerQuery(answers);
 
             }).catch(error => console.log('inlineQuery Error:', error));
 
         } else {
-            if (BundesländerArray.includes(query)) {
-                var para = {
+            let para = (BundesländerArray.includes(query))
+                ? {
                     lookup: query,
                     collum: "Bundesland",
                     mode: "LIKE",
                     table: "region",
                     limit: 35
-                };
-            } else {
-
-                var para = {
+                }
+                : {
                     lookup: query,
                     collum: "Ort",
                     mode: "LIKE",
                     table: "region",
                     limit: 10
                 };
-            }
 
             SQL.lookup(para).then(function (getCoronaDetail) {
                 let idcount = 0;
@@ -180,19 +186,18 @@ bot.on('inlineQuery', msg => {
                     return bot.answerQuery(answers);
                 } else {
                     getCoronaDetail.map((getCoronaDetail) => {
-
+                        let formattedTime;
                         if (getCoronaDetail.TimeStamp === "123456789") {
-                            var formattedTime = "Unbekannt"
+                            formattedTime = "Unbekannt"
                         } else {
+                            let date = new Date(getCoronaDetail.TimeStamp * 1000);
+                            let year = date.getFullYear();
+                            let month = date.getMonth() + 1;
+                            let day = date.getDate();
+                            let hours = date.getHours();
+                            let minutes = "0" + date.getMinutes();
 
-                            var date = new Date(getCoronaDetail.TimeStamp * 1000)
-                            var year = date.getFullYear()
-                            var month = date.getMonth() + 1
-                            var day = date.getDate()
-                            var hours = date.getHours();
-                            var minutes = "0" + date.getMinutes();
-
-                            var formattedTime = day + "." + month + "." + year + " " + hours + ':' + minutes.substr(-2);
+                            formattedTime = day + "." + month + "." + year + " " + hours + ':' + minutes.substr(-2);
                         }
                         let MessageOut = "<b>" + getCoronaDetail.Ort + "</b> (<i>" + getCoronaDetail.Bundesland + "</i>)\nEinwohner: " + numberWithCommas(getCoronaDetail.population) + "\n\n - Bestätigt: " + numberWithCommas(getCoronaDetail.confirmed) + " 🦠 (" + Round3Dec((getCoronaDetail.confirmed / getCoronaDetail.population) * 100) + "%)\n - Wieder gesund: " + numberWithCommas(getCoronaDetail.recovered) + " 💚(" + Round3Dec((getCoronaDetail.recovered / getCoronaDetail.population) * 100) + "%)\n - Todesfälle: " + numberWithCommas(getCoronaDetail.deaths) + " ⚰️(" + Round3Dec((getCoronaDetail.deaths / getCoronaDetail.population) * 100) + "%)\n\nAktuell Erkrankte: " + numberWithCommas(parseInt(getCoronaDetail.confirmed) - (parseInt(getCoronaDetail.recovered) + parseInt(getCoronaDetail.deaths))) + " 🤧\n\nQuelle: <a href='" + getCoronaDetail.QuelleURL + "'>" + getCoronaDetail.Quelle + "</a>\nStand: <b>" + formattedTime + "</b>";
 
@@ -315,33 +320,33 @@ bot.on('callbackQuery', (msg) => {
         let MSG = "Corona Deutschland:\n";
 
         Datenquellen.getCoronaFromFile()
-                    .then(function (Corona) {
+            .then(function (Corona) {
 
-            var date = new Date(Corona.ZeitStempel * 1000)
-            var year = date.getFullYear()
-            var month = date.getMonth() + 1
-            var day = date.getDate()
-            var hours = date.getHours();
-            var minutes = "0" + date.getMinutes();
+                var date = new Date(Corona.ZeitStempel * 1000)
+                var year = date.getFullYear()
+                var month = date.getMonth() + 1
+                var day = date.getDate()
+                var hours = date.getHours();
+                var minutes = "0" + date.getMinutes();
 
-            var formattedTime = day + "." + month + "." + year + " " + hours + ':' + minutes.substr(-2);
+                var formattedTime = day + "." + month + "." + year + " " + hours + ':' + minutes.substr(-2);
 
 
-            let MSG = "Corona Deutschland:\n- Bestätigt: " + numberWithCommas(Corona.confirmed) + " 🦠\n- Wieder gesund: " + numberWithCommas(Corona.recovered) + " 💚\n- Todesfälle: " + numberWithCommas(Corona.deaths) + " ⚰️\n\nAktuell Erkrankte: " + numberWithCommas(parseInt(Corona.confirmed) - (parseInt(Corona.recovered) + parseInt(Corona.deaths))) + " 🤧\n\nStand: ***" + formattedTime + "***";
+                let MSG = "Corona Deutschland:\n- Bestätigt: " + numberWithCommas(Corona.confirmed) + " 🦠\n- Wieder gesund: " + numberWithCommas(Corona.recovered) + " 💚\n- Todesfälle: " + numberWithCommas(Corona.deaths) + " ⚰️\n\nAktuell Erkrankte: " + numberWithCommas(parseInt(Corona.confirmed) - (parseInt(Corona.recovered) + parseInt(Corona.deaths))) + " 🤧\n\nStand: ***" + formattedTime + "***";
 
-            if ('inline_message_id' in msg) {
-                bot.editMessageText(
-                    {inlineMsgId: inlineId}, MSG,
-                    {parseMode: 'markdown', webPreview: false, replyMarkup}
-                ).catch(error => console.log('Error:', error));
-            } else {
-                bot.editMessageText(
-                    {chatId: chatId, messageId: messageId}, MSG,
-                    {parseMode: 'markdown', webPreview: false, replyMarkup}
-                ).catch(error => console.log('Error:', error));
-            }
+                if ('inline_message_id' in msg) {
+                    bot.editMessageText(
+                        {inlineMsgId: inlineId}, MSG,
+                        {parseMode: 'markdown', webPreview: false, replyMarkup}
+                    ).catch(error => console.log('Error:', error));
+                } else {
+                    bot.editMessageText(
+                        {chatId: chatId, messageId: messageId}, MSG,
+                        {parseMode: 'markdown', webPreview: false, replyMarkup}
+                    ).catch(error => console.log('Error:', error));
+                }
 
-        }).catch(error => console.log('Knopf Error:', error));
+            }).catch(error => console.log('Knopf Error:', error));
     }
 
 });
@@ -393,7 +398,7 @@ function getHourDE(date) {
 
 /*----------------------Trigger--------------------------*/
 setInterval(function () {
-
+    const { applicationStore } = rootStore;
     if (getHourDE(new Date()) === '0000') {
         Datenquellen.getCorona24().then(function (Corona) {
             let StartTime = new Date().getTime();
@@ -421,7 +426,7 @@ setInterval(function () {
 
                 fs.writeFile("./data/last24.csv", Corona.confirmed + "," + Corona.recovered + "," + Corona.deaths + "," + new Date().getTime(), (err) => {
                     if (err) console.log(err);
-                    f.log("last24.csv was written...")
+                    log("last24.csv was written...")
                 });
                 fs.appendFile('./data/TäglicheStats.csv', Corona.confirmed + "," + Corona.recovered + "," + Corona.deaths + "\n", function (err) {
                     if (err) {
@@ -437,7 +442,7 @@ setInterval(function () {
         let changed = parseInt(Corona.confirmeddiff) + parseInt(Corona.recovereddiff) + parseInt(Corona.deathsdiff)
         if (changed >= 1) {
             if (StartTime - Corona.Zeit <= 600000) { //600000
-                f.log("Kanalpost übersprungen, da die Zeit zu gering war.")
+                log("Kanalpost übersprungen, da die Zeit zu gering war.")
             } else {
 
                 if (parseInt(Corona.confirmed) - (parseInt(Corona.recovered) + parseInt(Corona.deaths)) - parseInt(Corona.krankealt) >= 0) {
@@ -461,7 +466,7 @@ setInterval(function () {
 
                 fs.writeFile("./data/last.csv", Corona.confirmed + "," + Corona.recovered + "," + Corona.deaths + "," + Kranke + "," + new Date().getTime() + "," + Corona.ZeitStempel * 1000, (err) => {
                     if (err) console.log(err);
-                    f.log("last.csv was written...")
+                    log("last.csv was written...")
                 });
 
                 let LogLine = Corona.ZeitStempel + "," + Corona.confirmed + "," + Corona.confirmeddiff + "," + Corona.recovered + "," + Corona.recovereddiff + "," + Corona.deaths + "," + Corona.deathsdiff + "\n"
@@ -474,18 +479,20 @@ setInterval(function () {
         }
     }).catch(error => console.log('getCorona Error:', error));
 
-    if (UpdateDBMin === 10) {
-        SQL.updateDB().then(function (Output) {
-            f.log(Output.Text + " Es wurden " + Output.count + " eingelesen von Morgenpost")
-            var UpdateDBMin = 0
-        }).catch(error => console.log('DB Update Error:', error));
+    if (applicationStore.updateDbMinTimer === 10) {
+        SQL.updateDB()
+            .then(function (Output) {
+                log(Output.Text + " Es wurden " + Output.count + " eingelesen von Morgenpost")
+                applicationStore.setUpdateDbMinTimer(0);
+            }).catch(error => console.log('DB Update Error:', error));
 
-        SQL.updateDBRisklayer().then(function (Output) {
-            log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
-            var UpdateDBMin = 0
-        }).catch(error => console.log('DB Update Error:', error));
+        SQL.updateDBRisklayer()
+            .then(function (Output) {
+                log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
+                applicationStore.setUpdateDbMinTimer(0);
+            }).catch(error => console.log('DB Update Error:', error));
     } else {
-        UpdateDBMin++
+        applicationStore.incrementUpdateDbMinTimer();
     }
 
 }, 60000);
@@ -541,18 +548,18 @@ bot.on(/^\/inline$/i, (msg) => {
 
 bot.on(/^\/updateRisk$/i, (msg) => {
     SQL.updateDBRisklayer().then(function (Output) {
-        f.log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
-        var UpdateDBMin = 0
+        log(Output.Text + " Es wurden " + Output.count + " eingelesen von Risklayer")
+        applicationStore.setUpdateDbMinTimer(0);
     }).catch(error => console.log('DB Update Error:', error));
 });
 
 bot.on(/^\/R0(.+)/i, (msg, props) => {
     bot.deleteMessage(msg.chat.id, msg.message_id).catch(error => console.log('Delete MSG:', error.description));
-    var Para = props.match[1].split(' ');
-    var dateNow = new Date()
-    var Message = `R0 Wert der letzten ${Para[1]} Tage:\n\n`
-    var promises_Formel1 = [];
-    var promises_Formel2 = [];
+    let Para = props.match[1].split(' ');
+    let dateNow = new Date()
+    let Message = `R0 Wert der letzten ${Para[1]} Tage:\n\n`
+    let promises_Formel1 = [];
+    let promises_Formel2 = [];
     for (let i = 0; i < Para[1]; i++) {
         promises_Formel1.push(Rekursion.getNowCast(i))
         promises_Formel2.push(Rekursion.getSensitive(i))
@@ -568,8 +575,5 @@ bot.on(/^\/R0(.+)/i, (msg, props) => {
             } else {
                 msg.reply.text(Message)
             }
-        })
+        }).catch(console.error);
 });
-
-
-//getDate
