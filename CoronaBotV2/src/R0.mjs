@@ -130,6 +130,7 @@ let oopt = {
     "dest": "C:/dev/media/test.jpg"
 };
 
+
 /**
  * Provides an image representing a graph of ...
  *
@@ -142,13 +143,22 @@ let GetGraph = function (Para) {
         let chartData = {
             "type": "line",
             "data": {
-                "labels": ["Hello", "World"],
-                "datasets": [{
-                    "label": "Foo",
-                    "data": [1, 2]
-                }]
+                "labels":["January", "February", "March", "April", "May"],
+                "datasets": [
+                    {
+                        "label": "Dogs",
+                        "data": [50, 60, 70, 180, 190],
+                        "fill": false,
+                        "borderColor": "blue"
+                    }, {
+                        "label": "Cats",
+                        "data": [100, 200, 300, 400, 500],
+                        "fill": false,
+                        "borderColor": "green"
+                    }]
             }
         };
+
         let chartOptions = {
             "width": Para.resolutionX,
             "height": Para.resolutionY,
