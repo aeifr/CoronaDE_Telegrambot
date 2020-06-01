@@ -129,13 +129,6 @@ let oopt = {
     "url": 'https://quickchart.io/chart/render/f-5ab476c7-b6e2-42f4-a1d1-6fc7885fd324',
     "dest": "C:/dev/media/test.jpg"
 };
-download.image(oopt)
-    .then(res => {
-        console.log("downloaded image");
-    }).catch(err => {
-    console.log(err);
-}).finally(() => console.log("34567"));
-
 
 /**
  * Provides an image representing a graph of ...
@@ -144,7 +137,7 @@ download.image(oopt)
  * @returns {Promise<unknown>}
  * @constructor
  */
-let GetGraph = async function (Para) {
+let GetGraph = function (Para) {
     return new Promise(function (resolve, reject) {
         let chartData = {
             "type": "line",
@@ -164,25 +157,41 @@ let GetGraph = async function (Para) {
         axios.post("https://quickchart.io/chart/create", chartOptions)
             .then(response => {
                 if (response.data && response.data.success === true) {
-                    let imageOptions = {
-                        "url": response.data.url,
-                        "dest": `${Para.path}${Para.filename}`
-                    };
-                    console.log(imageOptions);
-                    download.image(imageOptions)
-                            .then(res => {
-                                console.log("downloaded image");
-                                resolve(res);
-                            }).catch(err => {
-                                console.log(err);
-                                reject(err);
-                            }).finally(() => console.log("34567"));
-                    console.log("foobar");
+                    downloadImage(response.data.url, `${Para.path}${Para.filename}`)
+                        .then(resolve)
+                        .catch(reject)
+                        .finally("finally download image");
                 }
             })
             .catch(console.error);
     });
 };
+
+/**
+ *
+ * @param url
+ * @param location
+ * @returns {Promise<unknown>}
+ */
+async function downloadImage(url, location) {
+    const writer = fs.createWriteStream(location);
+    const response = await axios({
+        "url": url,
+        "method":'GET',
+        "responseType":'stream'
+    });
+    response.data.pipe(writer);
+    return new Promise((resolve, reject) => {
+        writer.on('finish', () => {
+            console.log(`Dumped image to location ${location}`);
+            resolve();
+        });
+        writer.on('error', (error) => {
+            console.log(`Some error occurred during writing. ${error}`);
+            reject();
+        });
+    });
+}
 
 let labels = "['11.05.2020','12.05.2020','13.05.2020','14.05.2020','15.05.2020','16.05.2020','17.05.2020','18.05.2020']"
 let data = [];
