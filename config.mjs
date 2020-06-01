@@ -1,8 +1,8 @@
 var config = {
 	"botname":"CoronaBot",
-	"LogChat":"",
-	"dbreaduserhost": "",
-	"dbreaduser": "",
-	"database": ""
+	"LogChat":"-1001211106939",
+	"dbreaduserhost": "localhost",
+	"dbreaduser": "local",
+	"database": "corona"
 };
 export default config;

@@ -157,7 +157,7 @@ let GetGraph = function (Para) {
         axios.post("https://quickchart.io/chart/create", chartOptions)
             .then(response => {
                 if (response.data && response.data.success === true) {
-                    downloadImage(response.data.url, `${Para.path}${Para.filename}`)
+                    downloadResource(response.data.url, `${Para.path}${Para.filename}`)
                         .then(resolve)
                         .catch(reject)
                         .finally("finally download image");
@@ -168,12 +168,14 @@ let GetGraph = function (Para) {
 };
 
 /**
+ * Downloads a resource to a defined location.
  *
- * @param url
- * @param location
- * @returns {Promise<unknown>}
+ * @param {string} url to fetch the resource from
+ * @param {string} location to store the resource
+ *
+ * @returns {Promise<undefined>} with no further information
  */
-async function downloadImage(url, location) {
+async function downloadResource(url, location) {
     const writer = fs.createWriteStream(location);
     const response = await axios({
         "url": url,
